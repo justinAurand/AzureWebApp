@@ -258,6 +258,3 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
-
-# Publish files that hold credentials
-*.pubxml
