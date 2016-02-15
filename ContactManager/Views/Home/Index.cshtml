@@ -1,0 +1,108 @@
+﻿@model IEnumerable<ContactManager.Models.Contact>
+
+@{
+    ViewBag.Title = "Home";
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/knockout")
+    <script type="text/javascript">
+    @functions {
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;
+        }
+    }
+
+    function ContactsViewModel() {
+        var self = this;
+        self.contacts = ko.observableArray([]);
+
+        self.addContact = function () {
+            $.ajax({
+                type: "post",
+                url: "/api/contacts",
+                data: $("#addContact").serialize(),
+                dataType: "json",
+                success: function (value) {
+                    self.contacts.push(value);
+                },
+                headers: {
+                    'RequestVerificationToken': '@TokenHeaderValue()'
+                }
+            });
+        }
+
+        self.removeContact = function (contact) {
+            $.ajax({
+                type: "DELETE",
+                url: contact.Self,
+                success: function () {
+                    self.contacts.remove(contact);
+                },
+                headers: {
+                    'RequestVerificationToken': '@TokenHeaderValue()'
+                }
+            });
+        }
+
+        $.getJSON("/api/contacts", function (data) {
+            self.contacts(data);
+        });
+    }
+
+    ko.applyBindings(new ContactsViewModel());
+    </script>
+}
+
+@*<ul id="contacts">
+    <li class="ui-widget-content ui-corner-all">
+        <h1>This stinks.</h1>
+        <div>There would be a list of contacts here,</div>
+        <div>but there's no such thing as a free</div>
+        <div>trail for an Azure db. So, the learning</div>
+        <div>stops here.</div>
+    </li>
+</ul>*@
+
+<ul id="contacts" data-bind="foreach: contacts">
+    <li class="ui-widget-content ui-corner-all">
+        <h1 data-bind="text: Name" class="ui-widget-header"></h1>
+        <div data-bind="text: $data.Alias || 'Alias?'"></div>
+        <div data-bind="text: $data.City || 'City?'"></div>
+        <div>Likes: <span data-bind="text: $data.Likes || 'Likes?'"></span></div>
+        <div>Dislikes: <span data-bind="text: $data.Dislikes || 'Dislikes?'"></span></div>
+        <p><a data-bind="attr: { href: Self }, click: $root.removeContact" class="removeContact ui-state-default ui-corner-all">Remove</a></p>
+    </li>
+</ul>
+
+<form id="addContact" data-bind="submit: addContact">
+    <fieldset>
+        <legend>Add New Contact</legend>
+        <ol>
+            <li>
+                <label for="Name">Name</label>
+                <input type="text" name="Name" />
+            </li>
+            <li>
+                <label for="Alias">Alias</label>
+                <input type="text" name="Alias">
+            </li>
+            <li>
+                <label for="City">City</label>
+                <input type="text" name="City" />
+            </li>
+            <li>
+                <label for="Likes">Likes</label>
+                <input type="text" name="Likes" />
+            </li>
+            <li>
+                <label for="Dislikes">Dislikes</label>
+                <input type="text" name="Dislikes" />
+            </li>
+        </ol>
+        <input type="submit" value="Add" />
+    </fieldset>
+</form>
