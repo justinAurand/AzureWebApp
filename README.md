@@ -1,2 +1,2 @@
 # AzureWebApp
-Simple Azure web app, api, and db
+Quick hack, setting up an Azure web app, api, and db.
